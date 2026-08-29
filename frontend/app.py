@@ -19,92 +19,135 @@ isbn = st.text_input(
 
 if st.button("Search Book"):
     if not isbn.strip():
-        st.warning("Please scan or enter an ISBN.")
+        st.session_state["error"] = "Please scan or enter an ISBN."
+        st.session_state["book"] = None
+        st.session_state["manual_entry"] = False
     else:
-        response = requests.post(
-            f"{API_URL}/books/lookup",
-            json={"isbn": isbn},
-            timeout=15,
-        )
+        try:
+            response = requests.post(
+                f"{API_URL}/books/lookup",
+                json={"isbn": isbn},
+                timeout=15,
+            )
 
-        result = response.json()
+            response.raise_for_status()
+            result = response.json()
 
-        if not result["found"]:
-            st.error(result["error"])
-        else:
-            st.session_state["book"] = result["data"]
+            if result.get("found"):
+                st.session_state["book"] = result["data"]
+                st.session_state["manual_entry"] = False
+                st.session_state["error"] = None
+            else:
+                st.session_state["book"] = None
+                st.session_state["manual_entry"] = True
+                st.session_state["error"] = result.get(
+                    "error",
+                    "Book could not be found.",
+                )
+
+        except requests.exceptions.RequestException:
+            st.session_state["book"] = None
+            st.session_state["manual_entry"] = False
+            st.session_state["error"] = (
+                "Unable to connect to the backend. " "Please try again."
+            )
 
 
 book = st.session_state.get("book")
+manual_entry = st.session_state.get("manual_entry", False)
+error = st.session_state.get("error")
 
-if book:
-    st.success("Book found!")
+
+# --------------------------------------------------
+# Error / Manual Entry
+# --------------------------------------------------
+
+if error and manual_entry:
+    st.warning("Book not found in Google Books. " "Please enter the details manually.")
+
+
+elif error:
+    st.error(error)
+
+
+# --------------------------------------------------
+# Book Form
+# --------------------------------------------------
+
+if book is not None or manual_entry:
+
+    if book is not None:
+        st.success("Book found!")
 
     st.subheader("Book Information")
 
     title = st.text_input(
         "Title",
-        value=book.get("title") or "",
+        value=book.get("title") if book else "",
     )
 
     subtitle = st.text_input(
         "Subtitle",
-        value=book.get("subtitle") or "",
+        value=book.get("subtitle") if book else "",
     )
 
     authors = st.text_input(
         "Authors",
-        value=", ".join(book.get("authors", [])),
+        value=", ".join(book.get("authors", [])) if book else "",
     )
 
     publisher = st.text_input(
         "Publisher",
-        value=book.get("publisher") or "",
+        value=book.get("publisher") if book else "",
     )
 
     publication_date = st.text_input(
         "Publication Date",
-        value=book.get("publication_date") or "",
+        value=book.get("publication_date") if book else "",
     )
 
     page_count = st.number_input(
         "Pages",
         min_value=0,
-        value=book.get("page_count") or 0,
+        value=book.get("page_count") or 0 if book else 0,
     )
 
     isbn_10 = st.text_input(
         "ISBN-10",
-        value=book.get("isbn_10") or "",
+        value=book.get("isbn_10") if book else "",
     )
 
     isbn_13 = st.text_input(
         "ISBN-13",
-        value=book.get("isbn_13") or "",
+        value=book.get("isbn_13") if book else isbn,
     )
 
     language = st.text_input(
         "Language",
-        value=book.get("language") or "",
+        value=book.get("language") if book else "",
     )
 
     categories = st.text_input(
         "Categories",
-        value=", ".join(book.get("categories", [])),
+        value=", ".join(book.get("categories", [])) if book else "",
     )
 
     description = st.text_area(
         "Description",
-        value=book.get("description") or "",
+        value=book.get("description") if book else "",
     )
 
     cover_image_url = st.text_input(
         "Cover Image URL",
-        value=book.get("cover_image_url") or "",
+        value=book.get("cover_image_url") if book else "",
     )
 
     if cover_image_url:
         st.image(cover_image_url, width=180)
+
+    # --------------------------------------------------
+    # Seller Information
+    # --------------------------------------------------
 
     st.subheader("Seller Information")
 
