@@ -5,6 +5,13 @@ from app.services.book_metadata import BookMetadataService
 from app.providers.google_books import GoogleBooksProvider
 from app.utils.isbn import validate_isbn
 
+from app.models.product import Product
+from app.services.product import ProductService
+from app.integrations.woocommerce import WooCommerceProvider
+
+commerce_provider = WooCommerceProvider()
+product_service = ProductService(commerce_provider)
+
 
 router = APIRouter(prefix="/books", tags=["Books"])
 
@@ -50,3 +57,8 @@ def lookup_book(request: ISBNRequest):
         "found": True,
         "data": book,
     }
+
+
+@router.post("/products")
+def create_product(product: Product):
+    return product_service.create_product(product)
