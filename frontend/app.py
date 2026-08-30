@@ -145,6 +145,26 @@ if book is not None or manual_entry:
     if cover_image_url:
         st.image(cover_image_url, width=180)
 
+    asin = st.text_input(
+        "ASIN",
+        value=book.get("asin", "") if book else "",
+    )
+
+    format = st.text_input(
+        "Format",
+        value=book.get("format", "") if book else "",
+    )
+
+    edition = st.text_input(
+        "Edition",
+        value=book.get("edition", "") if book else "",
+    )
+
+    reading_age = st.text_input(
+        "Reading Age",
+        value=book.get("reading_age", "") if book else "",
+    )
+
     # --------------------------------------------------
     # Seller Information
     # --------------------------------------------------
@@ -190,6 +210,7 @@ if book is not None or manual_entry:
             "book": {
                 "isbn_10": isbn_10,
                 "isbn_13": isbn_13,
+                "asin": asin,
                 "title": title,
                 "subtitle": subtitle,
                 "authors": [
@@ -205,6 +226,9 @@ if book is not None or manual_entry:
                     if category.strip()
                 ],
                 "language": language,
+                "format": format,
+                "edition": edition,
+                "reading_age": reading_age,
                 "cover_image_url": cover_image_url,
             },
             "seller": {

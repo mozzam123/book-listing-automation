@@ -47,9 +47,22 @@ class GoogleBooksProvider:
             authors=volume_info.get("authors", []),
             publisher=volume_info.get("publisher"),
             publication_date=volume_info.get("publishedDate"),
+            language=volume_info.get("language"),
+            format=self._get_format(volume_info),
+            edition=None,
+            reading_age=None,
             description=volume_info.get("description"),
             page_count=volume_info.get("pageCount"),
             categories=volume_info.get("categories", []),
-            language=volume_info.get("language"),
             cover_image_url=image_links.get("thumbnail"),
+            asin=None,
         )
+
+    @staticmethod
+    def _get_format(volume_info: dict) -> str | None:
+        print_type = volume_info.get("printType")
+
+        if print_type == "BOOK":
+            return None
+
+        return print_type
