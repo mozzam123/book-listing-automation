@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     woocommerce_consumer_key: str
     woocommerce_consumer_secret: str
 
+    wordpress_username: str
+    wordpress_application_password: str
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
