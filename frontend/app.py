@@ -198,12 +198,18 @@ if book is not None or manual_entry:
 
     selling_price = st.number_input(
         "Selling Price",
+        min_value=0.0,
         step=10.0,
+        value=None,
+        placeholder="Enter selling price",
     )
 
     original_price = st.number_input(
         "Original Price",
+        min_value=0.0,
         step=10.0,
+        value=None,
+        placeholder="Enter original price",
     )
 
     stock = st.number_input(
@@ -234,7 +240,7 @@ if book is not None or manual_entry:
                 "page_count": page_count,
                 "reading_age": reading_age,
                 "description": description,
-                "categories": [],
+                "categories": selected_category_names,
                 "cover_image_url": cover_image_url,
             },
             "seller": {

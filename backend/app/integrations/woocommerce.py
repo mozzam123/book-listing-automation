@@ -65,13 +65,22 @@ class WooCommerceProvider(CommerceProvider):
         payload = {
             "name": self._build_product_title(product),
             "type": "simple",
-            "regular_price": str(product.seller.selling_price),
+            "regular_price": (
+                str(product.seller.original_price)
+                if product.seller.original_price is not None
+                else str(product.seller.selling_price)
+            ),
+            "sale_price": (
+                str(product.seller.selling_price)
+                if product.seller.original_price is not None
+                else ""
+            ),
             "manage_stock": True,
             "stock_quantity": product.seller.stock,
             "description": description,
             "short_description": description,
-            "sku": product.book.isbn_13 or product.book.isbn_10,
         }
+
         if product.category_ids:
             payload["categories"] = [
                 {
