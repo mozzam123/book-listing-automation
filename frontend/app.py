@@ -198,13 +198,11 @@ if book is not None or manual_entry:
 
     selling_price = st.number_input(
         "Selling Price",
-        min_value=0.0,
         step=10.0,
     )
 
     original_price = st.number_input(
         "Original Price",
-        min_value=0.0,
         step=10.0,
     )
 

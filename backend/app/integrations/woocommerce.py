@@ -111,20 +111,19 @@ class WooCommerceProvider(CommerceProvider):
 
     def _build_description(self, product: Product) -> str:
         book = product.book
-
         authors = ", ".join(book.authors)
-
         pages = f"{book.page_count} pages" if book.page_count else ""
 
-        return f"""About the Book:
+        return f"""
+    <strong>About the Book:</strong>
 
     {book.description or ""}
 
-    Author :  {authors}
-    Publisher  :  {book.publisher or ""}
-    Publication date :  {book.publication_date or ""}
-    Language  :  {book.language or ""}
-    {book.binding}  :  {pages}
-    ISBN-10  :  {book.isbn_10 or ""}
-    ISBN-13  :  {book.isbn_13 or ""}
+    <strong>Author</strong>  :  {authors}
+    <strong>Publisher</strong>  :  {book.publisher or ""}
+    <strong>Publication date</strong>  :  {book.publication_date or ""}
+    <strong>Language</strong>  :  {book.language or ""}
+    <strong>{book.binding}</strong>  :  {pages}
+    <strong>ISBN-10</strong>  :  {book.isbn_10 or ""}
+    <strong>ISBN-13</strong>  :  {book.isbn_13 or ""}
     """
