@@ -5,6 +5,18 @@ import streamlit as st
 API_URL = "http://127.0.0.1:8000"
 
 
+@st.cache_data(ttl=300)
+def get_categories():
+    response = requests.get(
+        f"{API_URL}/categories",
+        timeout=15,
+    )
+
+    response.raise_for_status()
+
+    return response.json()
+
+
 st.set_page_config(
     page_title="Book Listing Automation",
     page_icon="📚",
@@ -12,16 +24,23 @@ st.set_page_config(
 
 st.title("Add New Book")
 
+
+# --------------------------------------------------
+# ISBN Search
+# --------------------------------------------------
+
 isbn = st.text_input(
     "Scan ISBN",
     placeholder="Scan or enter ISBN...",
 )
+
 
 if st.button("Search Book"):
     if not isbn.strip():
         st.session_state["error"] = "Please scan or enter an ISBN."
         st.session_state["book"] = None
         st.session_state["manual_entry"] = False
+
     else:
         try:
             response = requests.post(
@@ -37,6 +56,7 @@ if st.button("Search Book"):
                 st.session_state["book"] = result["data"]
                 st.session_state["manual_entry"] = False
                 st.session_state["error"] = None
+
             else:
                 st.session_state["book"] = None
                 st.session_state["manual_entry"] = True
@@ -49,7 +69,7 @@ if st.button("Search Book"):
             st.session_state["book"] = None
             st.session_state["manual_entry"] = False
             st.session_state["error"] = (
-                "Unable to connect to the backend. " "Please try again."
+                "Unable to connect to the backend. Please try again."
             )
 
 
@@ -64,7 +84,6 @@ error = st.session_state.get("error")
 
 if error and manual_entry:
     st.warning("Book not found in Google Books. " "Please enter the details manually.")
-
 
 elif error:
     st.error(error)
@@ -84,11 +103,6 @@ if book is not None or manual_entry:
     title = st.text_input(
         "Title",
         value=book.get("title") if book else "",
-    )
-
-    subtitle = st.text_input(
-        "Subtitle",
-        value=book.get("subtitle") if book else "",
     )
 
     authors = st.text_input(
@@ -127,14 +141,40 @@ if book is not None or manual_entry:
         value=book.get("language") if book else "",
     )
 
-    categories = st.text_input(
-        "Categories",
-        value=", ".join(book.get("categories", [])) if book else "",
-    )
+    try:
+        available_categories = get_categories()
+
+        category_map = {
+            category["name"]: category["id"] for category in available_categories
+        }
+
+        category_names = list(category_map.keys())
+
+        selected_category_names = st.multiselect(
+            "Categories",
+            category_names,
+        )
+
+        selected_category_ids = [category_map[name] for name in selected_category_names]
+
+    except requests.exceptions.RequestException:
+        st.error("Unable to load WooCommerce categories.")
+
+        selected_category_names = []
+        selected_category_ids = []
 
     description = st.text_area(
         "Description",
         value=book.get("description") if book else "",
+    )
+
+    binding = st.selectbox(
+        "Binding",
+        [
+            "Paperback",
+            "Hardcover",
+        ],
+        index=0,
     )
 
     cover_image_url = st.text_input(
@@ -144,21 +184,6 @@ if book is not None or manual_entry:
 
     if cover_image_url:
         st.image(cover_image_url, width=180)
-
-    asin = st.text_input(
-        "ASIN",
-        value=book.get("asin", "") if book else "",
-    )
-
-    format = st.text_input(
-        "Format",
-        value=book.get("format", "") if book else "",
-    )
-
-    edition = st.text_input(
-        "Edition",
-        value=book.get("edition", "") if book else "",
-    )
 
     reading_age = st.text_input(
         "Reading Age",
@@ -190,54 +215,115 @@ if book is not None or manual_entry:
         step=1,
     )
 
-    condition = st.selectbox(
-        "Condition",
-        [
-            "Pre-owned",
-            "Used",
-            "Good",
-            "Very Good",
-            "Like New",
-        ],
-    )
-
-    condition_notes = st.text_area(
-        "Condition Notes",
-    )
+    # --------------------------------------------------
+    # Review Product
+    # --------------------------------------------------
 
     if st.button("Review Product"):
+
         st.session_state["product"] = {
             "book": {
                 "isbn_10": isbn_10,
                 "isbn_13": isbn_13,
-                "asin": asin,
                 "title": title,
-                "subtitle": subtitle,
                 "authors": [
                     author.strip() for author in authors.split(",") if author.strip()
                 ],
                 "publisher": publisher,
                 "publication_date": publication_date,
-                "description": description,
-                "page_count": page_count,
-                "categories": [
-                    category.strip()
-                    for category in categories.split(",")
-                    if category.strip()
-                ],
                 "language": language,
-                "format": format,
-                "edition": edition,
+                "binding": binding,
+                "page_count": page_count,
                 "reading_age": reading_age,
+                "description": description,
+                "categories": [],
                 "cover_image_url": cover_image_url,
             },
             "seller": {
                 "selling_price": selling_price,
                 "original_price": original_price,
                 "stock": stock,
-                "condition": condition,
-                "condition_notes": condition_notes,
             },
+            "category_ids": selected_category_ids,
         }
 
-        st.success("Product information ready.")
+        st.session_state["review_mode"] = True
+
+
+# --------------------------------------------------
+# Product Review
+# --------------------------------------------------
+
+if st.session_state.get("review_mode"):
+
+    product = st.session_state.get("product")
+
+    if product:
+
+        st.divider()
+        st.subheader("Review Product")
+
+        book_data = product["book"]
+        seller_data = product["seller"]
+
+        st.write("### Book Information")
+
+        st.write(f"**Title:** {book_data['title']}")
+        st.write(f"**Authors:** {', '.join(book_data['authors'])}")
+        st.write(f"**Publisher:** {book_data['publisher']}")
+        st.write(f"**Publication Date:** " f"{book_data['publication_date']}")
+        st.write(f"**Language:** {book_data['language']}")
+        st.write(f"**Binding:** {book_data['binding']}")
+        st.write(f"**Pages:** {book_data['page_count']}")
+        st.write(f"**ISBN-10:** {book_data['isbn_10']}")
+        st.write(f"**ISBN-13:** {book_data['isbn_13']}")
+        st.write(f"**Categories:** " f"{', '.join(book_data['categories'])}")
+        st.write(f"**Reading Age:** {book_data['reading_age']}")
+
+        st.write("### Description")
+
+        st.write(book_data["description"] or "")
+
+        if book_data["cover_image_url"]:
+            st.image(
+                book_data["cover_image_url"],
+                width=180,
+            )
+
+        st.write("### Seller Information")
+
+        st.write(f"**Selling Price:** " f"{seller_data['selling_price']}")
+        st.write(f"**Original Price:** " f"{seller_data['original_price']}")
+        st.write(f"**Stock:** {seller_data['stock']}")
+
+        # --------------------------------------------------
+        # Create Product
+        # --------------------------------------------------
+
+        if st.button("Create Product"):
+
+            try:
+                response = requests.post(
+                    f"{API_URL}/books/products",
+                    json=product,
+                    timeout=30,
+                )
+
+                response.raise_for_status()
+
+                created_product = response.json()
+
+                st.success("Product created successfully in WooCommerce!")
+
+                if created_product.get("id"):
+                    st.write(f"**WooCommerce Product ID:** " f"{created_product['id']}")
+
+                st.session_state["review_mode"] = False
+                st.session_state["product"] = None
+
+            except requests.exceptions.RequestException as exc:
+
+                st.error("Failed to create the product in WooCommerce.")
+
+                if exc.response is not None:
+                    st.error(exc.response.text)

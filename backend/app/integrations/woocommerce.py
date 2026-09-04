@@ -11,6 +11,46 @@ class WooCommerceProvider(CommerceProvider):
     def __init__(self):
         self.image_service = ImageService()
 
+    def _build_product_title(self, product: Product) -> str:
+        title = product.book.title or "Untitled Book"
+
+        authors = ", ".join(product.book.authors)
+
+        if authors:
+            return f"{title} By {authors}"
+
+        return title
+
+    def get_categories(self) -> list[dict]:
+        url = f"{settings.woocommerce_url}" "/wp-json/wc/v3/products/categories"
+
+        response = httpx.get(
+            url,
+            auth=(
+                settings.woocommerce_consumer_key,
+                settings.woocommerce_consumer_secret,
+            ),
+            params={
+                "per_page": 100,
+                "hide_empty": False,
+                "orderby": "name",
+                "order": "asc",
+            },
+            timeout=15.0,
+        )
+
+        response.raise_for_status()
+
+        categories = response.json()
+
+        return [
+            {
+                "id": category["id"],
+                "name": category["name"],
+            }
+            for category in categories
+        ]
+
     def create_product(self, product: Product) -> dict:
         image = None
 
@@ -20,15 +60,25 @@ class WooCommerceProvider(CommerceProvider):
                 self._build_image_filename(product),
             )
 
+        description = self._build_description(product)
+
         payload = {
-            "name": product.book.title or "Untitled Book",
+            "name": self._build_product_title(product),
             "type": "simple",
             "regular_price": str(product.seller.selling_price),
             "manage_stock": True,
             "stock_quantity": product.seller.stock,
-            "description": self._build_description(product),
+            "description": description,
+            "short_description": description,
             "sku": product.book.isbn_13 or product.book.isbn_10,
         }
+        if product.category_ids:
+            payload["categories"] = [
+                {
+                    "id": category_id,
+                }
+                for category_id in product.category_ids
+            ]
 
         if image:
             payload["images"] = [
@@ -64,17 +114,17 @@ class WooCommerceProvider(CommerceProvider):
 
         authors = ", ".join(book.authors)
 
-        description = book.description or ""
+        pages = f"{book.page_count} pages" if book.page_count else ""
 
         return f"""About the Book:
 
-{description}
+    {book.description or ""}
 
-Author  {authors}
-Publisher  :  {book.publisher or ""}
-Publication date  :  {book.publication_date or ""}
-Language :  {book.language or ""}
-{book.format or ""}  :  {f"{book.page_count} pages" if book.page_count else ""}
-ISBN-10 : {book.isbn_10 or ""}
-ISBN-13 :  {book.isbn_13 or ""}
-"""
+    Author :  {authors}
+    Publisher  :  {book.publisher or ""}
+    Publication date :  {book.publication_date or ""}
+    Language  :  {book.language or ""}
+    {book.binding}  :  {pages}
+    ISBN-10  :  {book.isbn_10 or ""}
+    ISBN-13  :  {book.isbn_13 or ""}
+    """

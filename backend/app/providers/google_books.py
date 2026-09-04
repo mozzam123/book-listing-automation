@@ -43,19 +43,16 @@ class GoogleBooksProvider:
             isbn_10=identifiers.get("ISBN_10"),
             isbn_13=identifiers.get("ISBN_13"),
             title=volume_info.get("title"),
-            subtitle=volume_info.get("subtitle"),
             authors=volume_info.get("authors", []),
             publisher=volume_info.get("publisher"),
             publication_date=volume_info.get("publishedDate"),
-            language=volume_info.get("language"),
-            format=self._get_format(volume_info),
-            edition=None,
+            language=self._get_language(volume_info.get("language")),
+            binding="Paperback",
+            page_count=volume_info.get("pageCount"),
             reading_age=None,
             description=volume_info.get("description"),
-            page_count=volume_info.get("pageCount"),
             categories=volume_info.get("categories", []),
             cover_image_url=image_links.get("thumbnail"),
-            asin=None,
         )
 
     @staticmethod
@@ -66,3 +63,28 @@ class GoogleBooksProvider:
             return None
 
         return print_type
+
+    @staticmethod
+    def _get_language(language: str | None) -> str | None:
+        language_map = {
+            "en": "English",
+            "hi": "Hindi",
+            "mr": "Marathi",
+            "fr": "French",
+            "de": "German",
+            "es": "Spanish",
+            "it": "Italian",
+            "pt": "Portuguese",
+            "ja": "Japanese",
+            "ko": "Korean",
+            "zh": "Chinese",
+            "ru": "Russian",
+        }
+
+        if not language:
+            return None
+
+        return language_map.get(
+            language.lower(),
+            language,
+        )
