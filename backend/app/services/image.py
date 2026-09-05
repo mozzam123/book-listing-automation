@@ -5,7 +5,11 @@ from app.core.config import settings
 
 class ImageService:
 
-    def upload_cover(self, image_url: str, filename: str) -> dict | None:
+    def upload_cover(
+        self,
+        image_url: str,
+        filename: str,
+    ) -> dict | None:
         if not image_url:
             return None
 
@@ -17,17 +21,41 @@ class ImageService:
 
         response.raise_for_status()
 
-        media_url = f"{settings.woocommerce_url}/wp-json/wp/v2/media"
+        return self._upload_to_wordpress(
+            image_data=response.content,
+            filename=filename,
+            content_type=response.headers.get(
+                "content-type",
+                "image/jpeg",
+            ),
+        )
 
-        upload_response = httpx.post(
+    def upload_image(
+        self,
+        image_data: bytes,
+        filename: str,
+        content_type: str,
+    ) -> dict:
+        return self._upload_to_wordpress(
+            image_data=image_data,
+            filename=filename,
+            content_type=content_type,
+        )
+
+    def _upload_to_wordpress(
+        self,
+        image_data: bytes,
+        filename: str,
+        content_type: str,
+    ) -> dict:
+        media_url = f"{settings.woocommerce_url}" "/wp-json/wp/v2/media"
+
+        response = httpx.post(
             media_url,
-            content=response.content,
+            content=image_data,
             headers={
-                "Content-Disposition": f'attachment; filename="{filename}"',
-                "Content-Type": response.headers.get(
-                    "content-type",
-                    "image/jpeg",
-                ),
+                "Content-Disposition": (f'attachment; filename="{filename}"'),
+                "Content-Type": content_type,
             },
             auth=(
                 settings.wordpress_username,
@@ -36,6 +64,6 @@ class ImageService:
             timeout=15.0,
         )
 
-        upload_response.raise_for_status()
+        response.raise_for_status()
 
-        return upload_response.json()
+        return response.json()

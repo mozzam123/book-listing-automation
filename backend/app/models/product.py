@@ -6,6 +6,7 @@ from app.models.book import BookMetadata
 class SellerInformation(BaseModel):
     selling_price: float | None = None
     original_price: float | None = None
+    sku: str = ""
     stock: int = 1
 
 

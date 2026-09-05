@@ -1,6 +1,8 @@
 import requests
 import streamlit as st
 import os
+import json
+import time
 
 API_URL = os.getenv(
     "API_URL",
@@ -35,6 +37,7 @@ st.title("Add New Book")
 isbn = st.text_input(
     "Scan ISBN",
     placeholder="Scan or enter ISBN...",
+    key="isbn_input",
 )
 
 
@@ -186,7 +189,25 @@ if book is not None or manual_entry:
     )
 
     if cover_image_url:
-        st.image(cover_image_url, width=180)
+
+        st.image(
+            cover_image_url,
+            caption="Google Books Cover",
+            width=200,
+        )
+
+    uploaded_image = st.file_uploader(
+        "Upload Custom Image (optional)",
+        type=["jpg", "jpeg", "png", "webp"],
+    )
+
+    if uploaded_image:
+
+        st.image(
+            uploaded_image,
+            caption="Custom Cover",
+            width=200,
+        )
 
     reading_age = st.text_input(
         "Reading Age",
@@ -199,6 +220,14 @@ if book is not None or manual_entry:
 
     st.subheader("Seller Information")
 
+    original_price = st.number_input(
+        "Original Price",
+        min_value=0.0,
+        step=10.0,
+        value=None,
+        placeholder="Enter original price",
+    )
+
     selling_price = st.number_input(
         "Selling Price",
         min_value=0.0,
@@ -207,12 +236,10 @@ if book is not None or manual_entry:
         placeholder="Enter selling price",
     )
 
-    original_price = st.number_input(
-        "Original Price",
-        min_value=0.0,
-        step=10.0,
-        value=None,
-        placeholder="Enter original price",
+    sku = st.text_input(
+        "SKU",
+        value="",
+        placeholder="Enter SKU (optional)",
     )
 
     stock = st.number_input(
@@ -247,12 +274,21 @@ if book is not None or manual_entry:
                 "cover_image_url": cover_image_url,
             },
             "seller": {
-                "selling_price": selling_price,
                 "original_price": original_price,
+                "selling_price": selling_price,
+                "sku": sku,
                 "stock": stock,
             },
             "category_ids": selected_category_ids,
         }
+        if uploaded_image:
+            st.session_state["custom_image"] = {
+                "data": uploaded_image.getvalue(),
+                "name": uploaded_image.name,
+                "type": uploaded_image.type,
+            }
+        else:
+            st.session_state["custom_image"] = None
 
         st.session_state["review_mode"] = True
 
@@ -299,8 +335,9 @@ if st.session_state.get("review_mode"):
 
         st.write("### Seller Information")
 
-        st.write(f"**Selling Price:** " f"{seller_data['selling_price']}")
         st.write(f"**Original Price:** " f"{seller_data['original_price']}")
+        st.write(f"**Selling Price:** " f"{seller_data['selling_price']}")
+        st.write(f"**SKU:** {seller_data['sku']}")
         st.write(f"**Stock:** {seller_data['stock']}")
 
         # --------------------------------------------------
@@ -308,12 +345,30 @@ if st.session_state.get("review_mode"):
         # --------------------------------------------------
 
         if st.button("Create Product"):
+            product = st.session_state["product"]
+
+            custom_image = st.session_state.get("custom_image")
+
+            files = None
+
+            if custom_image:
+
+                files = {
+                    "image": (
+                        custom_image["name"],
+                        custom_image["data"],
+                        custom_image["type"],
+                    )
+                }
 
             try:
                 response = requests.post(
                     f"{API_URL}/books/products",
-                    json=product,
-                    timeout=30,
+                    data={
+                        "product": json.dumps(product),
+                    },
+                    files=files,
+                    timeout=60,
                 )
 
                 response.raise_for_status()
@@ -325,8 +380,11 @@ if st.session_state.get("review_mode"):
                 if created_product.get("id"):
                     st.write(f"**WooCommerce Product ID:** " f"{created_product['id']}")
 
-                st.session_state["review_mode"] = False
-                st.session_state["product"] = None
+                time.sleep(2)
+
+                st.session_state.clear()
+
+                st.rerun()
 
             except requests.exceptions.RequestException as exc:
 
