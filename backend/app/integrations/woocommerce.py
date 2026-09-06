@@ -159,4 +159,5 @@ class WooCommerceProvider(CommerceProvider):
 <strong>{book.binding}</strong>  :  {pages}
 <strong>ISBN-10</strong>  :  {book.isbn_10 or ""}
 <strong>ISBN-13</strong>  :  {book.isbn_13 or ""}
+<strong>Reading Age</strong>  :  {book.reading_age or ""}
 """
