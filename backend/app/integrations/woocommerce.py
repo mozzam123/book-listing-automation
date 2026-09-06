@@ -147,17 +147,22 @@ class WooCommerceProvider(CommerceProvider):
 
         pages = f"{book.page_count} pages" if book.page_count else ""
 
+        reading_age = ""
+
+        if book.reading_age:
+            reading_age = f"<strong>Reading Age</strong>  : " f"{book.reading_age}"
+
         return f"""
-<strong>About the Book:</strong>
+    <strong>About the Book:</strong>
 
-{book.description or ""}
+    {book.description or ""}
 
-<strong>Author</strong>  :  {authors}
-<strong>Publisher</strong>  :  {book.publisher or ""}
-<strong>Publication date</strong>  :  {book.publication_date or ""}
-<strong>Language</strong>  :  {book.language or ""}
-<strong>{book.binding}</strong>  :  {pages}
-<strong>ISBN-10</strong>  :  {book.isbn_10 or ""}
-<strong>ISBN-13</strong>  :  {book.isbn_13 or ""}
-<strong>Reading Age</strong>  :  {book.reading_age or ""}
-"""
+    <strong>Author</strong>  :  {authors}
+    <strong>Publisher</strong>  :  {book.publisher or ""}
+    <strong>Publication date</strong>  :  {book.publication_date or ""}
+    <strong>Language</strong>  :  {book.language or ""}
+    <strong>{book.binding}</strong>  :  {pages}
+    <strong>ISBN-10</strong>  :  {book.isbn_10 or ""}
+    <strong>ISBN-13</strong>  :  {book.isbn_13 or ""}
+    {reading_age}
+    """
