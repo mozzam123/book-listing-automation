@@ -250,12 +250,11 @@ if book is not None or manual_entry:
     )
 
     # --------------------------------------------------
-    # Review Product
+    # Create Product
     # --------------------------------------------------
 
-    if st.button("Review Product"):
-
-        st.session_state["product"] = {
+    if st.button("Create Product"):
+        product = {
             "book": {
                 "isbn_10": isbn_10,
                 "isbn_13": isbn_13,
@@ -281,114 +280,42 @@ if book is not None or manual_entry:
             },
             "category_ids": selected_category_ids,
         }
+
+        files = None
+
         if uploaded_image:
-            st.session_state["custom_image"] = {
-                "data": uploaded_image.getvalue(),
-                "name": uploaded_image.name,
-                "type": uploaded_image.type,
+            files = {
+                "image": (
+                    uploaded_image.name,
+                    uploaded_image.getvalue(),
+                    uploaded_image.type,
+                )
             }
-        else:
-            st.session_state["custom_image"] = None
 
-        st.session_state["review_mode"] = True
-
-
-# --------------------------------------------------
-# Product Review
-# --------------------------------------------------
-
-if st.session_state.get("review_mode"):
-
-    product = st.session_state.get("product")
-
-    if product:
-
-        st.divider()
-        st.subheader("Review Product")
-
-        book_data = product["book"]
-        seller_data = product["seller"]
-
-        st.write("### Book Information")
-
-        st.write(f"**Title:** {book_data['title']}")
-        st.write(f"**Authors:** {', '.join(book_data['authors'])}")
-        st.write(f"**Publisher:** {book_data['publisher']}")
-        st.write(f"**Publication Date:** " f"{book_data['publication_date']}")
-        st.write(f"**Language:** {book_data['language']}")
-        st.write(f"**Binding:** {book_data['binding']}")
-        st.write(f"**Pages:** {book_data['page_count']}")
-        st.write(f"**ISBN-10:** {book_data['isbn_10']}")
-        st.write(f"**ISBN-13:** {book_data['isbn_13']}")
-        st.write(f"**Categories:** " f"{', '.join(book_data['categories'])}")
-        st.write(f"**Reading Age:** {book_data['reading_age']}")
-
-        st.write("### Description")
-
-        st.write(book_data["description"] or "")
-
-        if book_data["cover_image_url"]:
-            st.image(
-                book_data["cover_image_url"],
-                width=180,
+        try:
+            response = requests.post(
+                f"{API_URL}/books/products",
+                data={"product": json.dumps(product)},
+                files=files,
+                timeout=60,
             )
 
-        st.write("### Seller Information")
+            response.raise_for_status()
+            created_product = response.json()
 
-        st.write(f"**Original Price:** " f"{seller_data['original_price']}")
-        st.write(f"**Selling Price:** " f"{seller_data['selling_price']}")
-        st.write(f"**SKU:** {seller_data['sku']}")
-        st.write(f"**Stock:** {seller_data['stock']}")
+            st.success("Product created successfully in WooCommerce!")
 
-        # --------------------------------------------------
-        # Create Product
-        # --------------------------------------------------
-
-        if st.button("Create Product"):
-            product = st.session_state["product"]
-
-            custom_image = st.session_state.get("custom_image")
-
-            files = None
-
-            if custom_image:
-
-                files = {
-                    "image": (
-                        custom_image["name"],
-                        custom_image["data"],
-                        custom_image["type"],
-                    )
-                }
-
-            try:
-                response = requests.post(
-                    f"{API_URL}/books/products",
-                    data={
-                        "product": json.dumps(product),
-                    },
-                    files=files,
-                    timeout=60,
+            if created_product.get("id"):
+                st.write(
+                    f"**WooCommerce Product ID:** {created_product['id']}"
                 )
 
-                response.raise_for_status()
+            time.sleep(2)
+            st.session_state.clear()
+            st.rerun()
 
-                created_product = response.json()
+        except requests.exceptions.RequestException as exc:
+            st.error("Failed to create the product in WooCommerce.")
 
-                st.success("Product created successfully in WooCommerce!")
-
-                if created_product.get("id"):
-                    st.write(f"**WooCommerce Product ID:** " f"{created_product['id']}")
-
-                time.sleep(2)
-
-                st.session_state.clear()
-
-                st.rerun()
-
-            except requests.exceptions.RequestException as exc:
-
-                st.error("Failed to create the product in WooCommerce.")
-
-                if exc.response is not None:
-                    st.error(exc.response.text)
+            if exc.response is not None:
+                st.error(exc.response.text)
