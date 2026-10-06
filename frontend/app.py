@@ -144,7 +144,7 @@ if book is not None or manual_entry:
 
     language = st.text_input(
         "Language",
-        value=book.get("language") if book else "",
+        value=(book.get("language") or "English") if book else "English",
     )
 
     try:
