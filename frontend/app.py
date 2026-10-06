@@ -34,49 +34,55 @@ st.title("Add New Book")
 # ISBN Search
 # --------------------------------------------------
 
-isbn = st.text_input(
-    "Scan ISBN",
-    placeholder="Scan or enter ISBN...",
-    key="isbn_input",
-)
+def search_book():
+    isbn_value = st.session_state.get("isbn_input", "").strip()
 
-
-if st.button("Search Book"):
-    if not isbn.strip():
+    if not isbn_value:
         st.session_state["error"] = "Please scan or enter an ISBN."
         st.session_state["book"] = None
         st.session_state["manual_entry"] = False
+        return
 
-    else:
-        try:
-            response = requests.post(
-                f"{API_URL}/books/lookup",
-                json={"isbn": isbn},
-                timeout=15,
-            )
+    try:
+        response = requests.post(
+            f"{API_URL}/books/lookup",
+            json={"isbn": isbn_value},
+            timeout=15,
+        )
+        response.raise_for_status()
+        result = response.json()
 
-            response.raise_for_status()
-            result = response.json()
-
-            if result.get("found"):
-                st.session_state["book"] = result["data"]
-                st.session_state["manual_entry"] = False
-                st.session_state["error"] = None
-
-            else:
-                st.session_state["book"] = None
-                st.session_state["manual_entry"] = True
-                st.session_state["error"] = result.get(
-                    "error",
-                    "Book could not be found.",
-                )
-
-        except requests.exceptions.RequestException:
-            st.session_state["book"] = None
+        if result.get("found"):
+            st.session_state["book"] = result["data"]
             st.session_state["manual_entry"] = False
-            st.session_state["error"] = (
-                "Unable to connect to the backend. Please try again."
+            st.session_state["error"] = None
+        else:
+            st.session_state["book"] = None
+            st.session_state["manual_entry"] = True
+            st.session_state["error"] = result.get(
+                "error",
+                "Book could not be found.",
             )
+
+    except requests.exceptions.RequestException:
+        st.session_state["book"] = None
+        st.session_state["manual_entry"] = False
+        st.session_state["error"] = (
+            "Unable to connect to the backend. Please try again."
+        )
+
+
+with st.form("isbn_search_form"):
+    isbn = st.text_input(
+        "Scan ISBN",
+        placeholder="Scan or enter ISBN...",
+        key="isbn_input",
+    )
+
+    st.form_submit_button(
+        "Search Book",
+        on_click=search_book,
+    )
 
 
 book = st.session_state.get("book")
