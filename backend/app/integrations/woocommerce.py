@@ -27,6 +27,7 @@ class WooCommerceProvider(CommerceProvider):
                 image_data=custom_image_data,
                 filename=custom_image_filename or "book-cover.jpg",
                 content_type=custom_image_content_type or "image/jpeg",
+                book_title=product.book.title or "Untitled Book",
             )
 
         # Fall back to Google Books cover.
@@ -34,6 +35,7 @@ class WooCommerceProvider(CommerceProvider):
             image = self.image_service.upload_cover(
                 product.book.cover_image_url,
                 self._build_image_filename(product),
+                book_title=product.book.title or "Untitled Book",
             )
 
         description = self._build_description(product)
