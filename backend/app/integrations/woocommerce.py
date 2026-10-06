@@ -56,6 +56,12 @@ class WooCommerceProvider(CommerceProvider):
             "sku": product.seller.sku,
             "description": description,
             "short_description": description,
+            "meta_data": [
+                {
+                    "key": "rank_math_focus_keyword",
+                    "value": self._build_product_title(product),
+                }
+            ],
         }
 
         if product.category_ids:
@@ -152,8 +158,10 @@ class WooCommerceProvider(CommerceProvider):
         if book.reading_age:
             reading_age = f"<strong>Reading Age</strong>  : " f"{book.reading_age}"
 
+        product_title = self._build_product_title(product)
+
         return f"""
-    <strong>About the Book:</strong>
+    <strong>{product_title}</strong>
 
     {book.description or ""}
 
