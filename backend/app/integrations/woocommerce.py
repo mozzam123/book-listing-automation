@@ -21,13 +21,17 @@ class WooCommerceProvider(CommerceProvider):
 
         image = None
 
+        # Focus keyword is the product title (used as Rank Math focus keyword
+        # and as image alt text for SEO).
+        product_title = self._build_product_title(product)
+
         # Custom uploaded image takes priority.
         if custom_image_data:
             image = self.image_service.upload_image(
                 image_data=custom_image_data,
                 filename=custom_image_filename or "book-cover.jpg",
                 content_type=custom_image_content_type or "image/jpeg",
-                book_title=product.book.title or "Untitled Book",
+                book_title=product_title,
             )
 
         # Fall back to Google Books cover.
@@ -35,13 +39,13 @@ class WooCommerceProvider(CommerceProvider):
             image = self.image_service.upload_cover(
                 product.book.cover_image_url,
                 self._build_image_filename(product),
-                book_title=product.book.title or "Untitled Book",
+                book_title=product_title,
             )
 
         description = self._build_description(product)
 
         payload = {
-            "name": self._build_product_title(product),
+            "name": product_title,
             "type": "simple",
             "regular_price": (
                 str(product.seller.original_price)
@@ -61,7 +65,7 @@ class WooCommerceProvider(CommerceProvider):
             "meta_data": [
                 {
                     "key": "rank_math_focus_keyword",
-                    "value": self._build_product_title(product),
+                    "value": product_title,
                 }
             ],
         }
@@ -166,13 +170,30 @@ class WooCommerceProvider(CommerceProvider):
 
         product_title = self._build_product_title(product)
 
+        # External links for SEO: link out to external resources
+        isbn_10_link = (
+            f'<a href="https://www.isbn-search.org/search?isbn={isbn_10}" target="_blank" rel="noopener noreferrer">{isbn_10}</a>'
+            if isbn_10 != "Not available"
+            else isbn_10
+        )
+        isbn_13_link = (
+            f'<a href="https://www.isbn-search.org/search?isbn={isbn_13}" target="_blank" rel="noopener noreferrer">{isbn_13}</a>'
+            if isbn_13 != "Not available"
+            else isbn_13
+        )
+
         sections: list[str] = []
 
-        sections.append(f"<strong>{product_title}</strong>")
+        if book.cover_image_url:
+            sections.append(
+                f'<strong><a href="{book.cover_image_url}" target="_blank" rel="noopener noreferrer">{product_title}</a></strong>'
+            )
+        else:
+            sections.append(f"<strong>{product_title}</strong>")
         sections.append("")
 
         # About this book
-        sections.append("<strong>About this Book</strong>")
+        sections.append(f"<h2>About {product_title}</h2>")
         if description:
             sections.append(description)
             sections.append(
@@ -191,7 +212,7 @@ class WooCommerceProvider(CommerceProvider):
         sections.append("")
 
         # Book overview
-        sections.append("<strong>Book Overview</strong>")
+        sections.append("<h2>Book Overview</h2>")
         sections.append(
             f"{product_title} by {authors} is published by {publisher} "
             f"and was released on {publication_date}. Written in {language}, "
@@ -205,7 +226,7 @@ class WooCommerceProvider(CommerceProvider):
         sections.append("")
 
         # Author information
-        sections.append("<strong>Author Information</strong>")
+        sections.append("<h2>Author Information</h2>")
         sections.append(
             f"The author of {product_title} is {authors}. This title represents "
             f"the author's work in this edition, published under the {publisher} "
@@ -218,7 +239,7 @@ class WooCommerceProvider(CommerceProvider):
         sections.append("")
 
         # Publisher and publication details
-        sections.append("<strong>Publisher and Publication Details</strong>")
+        sections.append("<h2>Publisher and Publication Details</h2>")
         sections.append(
             f"This book is published by {publisher}. It was released on "
             f"{publication_date}. The publisher's involvement ensures that the "
@@ -231,7 +252,7 @@ class WooCommerceProvider(CommerceProvider):
         sections.append("")
 
         # Format and physical details
-        sections.append("<strong>Format and Physical Details</strong>")
+        sections.append("<h2>Format and Physical Details</h2>")
         sections.append(
             f"<strong>Binding:</strong> {binding}<br>"
             f"<strong>Pages:</strong> {book.page_count or 'Not specified'}<br>"
@@ -246,10 +267,10 @@ class WooCommerceProvider(CommerceProvider):
         sections.append("")
 
         # ISBN and book identification
-        sections.append("<strong>ISBN and Book Identification</strong>")
+        sections.append("<h2>ISBN and Book Identification</h2>")
         sections.append(
-            f"<strong>ISBN-10:</strong> {isbn_10}<br>"
-            f"<strong>ISBN-13:</strong> {isbn_13}<br>"
+            f"<strong>ISBN-10:</strong> {isbn_10_link}<br>"
+            f"<strong>ISBN-13:</strong> {isbn_13_link}<br>"
             f"These identifiers uniquely identify this edition of {product_title}, "
             f"making it easy to order the correct version from booksellers, "
             f"libraries, and online retailers. ISBN-10 {isbn_10} and ISBN-13 "
@@ -261,7 +282,7 @@ class WooCommerceProvider(CommerceProvider):
         sections.append("")
 
         # What to expect
-        sections.append("<strong>What to Expect</strong>")
+        sections.append("<h2>What to Expect</h2>")
         sections.append(
             f"Readers of {product_title} can expect a complete presentation of "
             f"the content in {language}. The {binding} format provides durability "
@@ -275,7 +296,7 @@ class WooCommerceProvider(CommerceProvider):
         sections.append("")
 
         # About this edition
-        sections.append("<strong>About This Edition</strong>")
+        sections.append("<h2>About This Edition</h2>")
         sections.append(
             f"This edition of {product_title} is brought to you by {publisher}. "
             f"It features the full content in {language}, presented in a "
@@ -290,7 +311,7 @@ class WooCommerceProvider(CommerceProvider):
         sections.append("")
 
         # Key features
-        sections.append("<strong>Key Features</strong>")
+        sections.append("<h2>Key Features</h2>")
         sections.append(
             f"<ul>"
             f"<li>Title: {product_title}</li>"
