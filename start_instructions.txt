@@ -1,0 +1,3 @@
+for backend - activate env and uvicorn app.main:app --reload
+
+for frontend - activate env and streamlit run frontend/app.py
