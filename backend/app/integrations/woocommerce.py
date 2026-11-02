@@ -156,8 +156,10 @@ class WooCommerceProvider(CommerceProvider):
         self,
         product: Product,
     ) -> str:
-        # Expanded product description to meet SEO minimum word count (~600+ words).
-        # Paragraphs are kept short for readability and SEO.
+        # Product description targeting 600-650 words for SEO.
+        # All paragraphs are short (2-4 sentences). Book description is capped
+        # to the first 3 sentences to prevent very long descriptions from
+        # inflating the word count. Required product detail format is preserved.
         book = product.book
 
         authors = ", ".join(book.authors) if book.authors else "Unknown Author"
@@ -199,42 +201,42 @@ class WooCommerceProvider(CommerceProvider):
         # About this book
         sections.append(f"<h2>About {product_title}</h2>")
         if description:
-            # Split long book description into short paragraphs for SEO
+            # Cap book description to first 3 sentences for SEO word count
             sentences = re.split(r'(?<=[.!?])\s+', description.strip())
-            for i in range(0, len(sentences), 3):
-                chunk = " ".join(sentences[i:i + 3]).strip()
-                if chunk:
-                    sections.append(chunk)
-                    sections.append("")
+            desc_chunk = " ".join(sentences[:3]).strip()
+            if desc_chunk:
+                sections.append(desc_chunk)
+                sections.append("")
             sections.append(
-                f"{product_title} by {authors} is published by {publisher} and "
-                f"was released on {publication_date}."
+                f"{product_title} by {authors} is published by {publisher} and was released on {publication_date}."
             )
             sections.append("")
             sections.append(
                 f"This {language} edition is presented in {binding} format with {pages}."
             )
+            sections.append("")
+            sections.append(
+                f"Readers will find a complete presentation of the content, "
+                f"carefully prepared for an engaging reading experience."
+            )
         else:
             sections.append(
-                f"Discover {product_title}, a {binding} edition authored by {authors}."
+                f"Discover {product_title}, a {binding} edition authored by {authors}. Published by {publisher}."
             )
             sections.append("")
             sections.append(
-                f"Published by {publisher}, this title is presented in {language} "
-                f"and offers readers a complete and engaging reading experience."
+                f"This {language} edition is presented in {binding} format with {pages}."
             )
             sections.append("")
             sections.append(
-                f"{product_title} brings together quality content and thoughtful "
-                f"presentation in a format designed for lasting enjoyment."
+                f"The book offers a complete presentation suitable for readers interested in the subject matter."
             )
         sections.append("")
 
         # Book overview
         sections.append("<h2>Book Overview</h2>")
         sections.append(
-            f"{product_title} by {authors} is published by {publisher} "
-            f"and was released on {publication_date}."
+            f"{product_title} by {authors} is published by {publisher} and was released on {publication_date}."
         )
         sections.append("")
         sections.append(
@@ -242,132 +244,89 @@ class WooCommerceProvider(CommerceProvider):
         )
         sections.append("")
         sections.append(
-            f"This book brings together thoughtful content and quality presentation, "
-            f"making it suitable for readers interested in the subject."
+            f"This book brings together thoughtful content and quality presentation, making it suitable for readers interested in the subject."
         )
         sections.append("")
         sections.append(
-            f"Whether you are adding to your personal library or looking for a "
-            f"reliable reference, this edition delivers the full text in a durable "
-            f"format that stands up to repeated reading."
+            f"The content is organized to provide a clear and engaging reading experience from beginning to end."
         )
         sections.append("")
 
         # Author information
         sections.append("<h2>Author Information</h2>")
         sections.append(
-            f"The author of {product_title} is {authors}."
+            f"The author of {product_title} is {authors}. This title represents the author's work published under the {publisher} imprint."
         )
         sections.append("")
         sections.append(
-            f"This title represents the author's work in this edition, published "
-            f"under the {publisher} imprint."
+            f"Readers who enjoy this book may also appreciate other works by the same author."
         )
         sections.append("")
         sections.append(
-            f"Readers who enjoy this book may also appreciate other works by "
-            f"the same author. Understanding the author behind {product_title} "
-            f"adds context and depth to the reading experience."
+            f"Understanding the author behind {product_title} adds context and depth to the reading experience."
+        )
+        sections.append("")
+        sections.append(
+            f"The author's contribution brings a distinctive voice and perspective to this edition."
         )
         sections.append("")
 
         # Publisher and publication details
         sections.append("<h2>Publisher and Publication Details</h2>")
         sections.append(
-            f"This book is published by {publisher}. It was released on "
-            f"{publication_date}."
+            f"This book is published by {publisher}. It was released on {publication_date}."
         )
         sections.append("")
         sections.append(
-            f"The publisher's involvement ensures that the content meets "
-            f"editorial standards and is presented professionally for readers."
+            f"The publisher's involvement ensures professional presentation and editorial standards."
         )
         sections.append("")
         sections.append(
-            f"{publisher} brings this edition to market with care for quality "
-            f"and readability."
+            f"The publication date marks when this edition became available, helping readers identify the specific version they are purchasing."
         )
         sections.append("")
         sections.append(
-            f"The publication date marks when this edition became available, "
-            f"helping readers identify the specific version of {product_title} "
-            f"they are purchasing."
+            f"The publisher brings this edition to market with care for quality and readability."
         )
         sections.append("")
 
-        # Format and physical details
-        sections.append("<h2>Format and Physical Details</h2>")
+        # Book details (required format)
+        sections.append("<h2>Book Details</h2>")
         sections.append(
-            f"<strong>Binding:</strong> {binding}<br>"
-            f"<strong>Pages:</strong> {book.page_count or 'Not specified'}<br>"
-            f"<strong>Language:</strong> {language}<br>"
-            f"<strong>Reading Age:</strong> {reading_age}<br>"
+            f"<strong>Author :</strong> {authors}<br>"
+            f"<strong>Publisher :</strong> {publisher}<br>"
+            f"<strong>Publication date :</strong> {publication_date}<br>"
+            f"<strong>Language :</strong> {language}<br>"
+            f"<strong>{binding} :</strong> {pages}<br>"
+            f"<strong>ISBN-10 :</strong> {isbn_10_link}<br>"
+            f"<strong>ISBN-13 :</strong> {isbn_13_link}<br>"
         )
         sections.append("")
         sections.append(
-            f"The {binding} binding is designed for durability, allowing the book "
-            f"to be handled and read repeatedly."
+            f"These details help readers confirm they are selecting the correct edition published by {publisher}."
         )
         sections.append("")
         sections.append(
-            f"With {pages}, this edition offers substantial content."
-        )
-        sections.append("")
-        sections.append(
-            f"The {language} language presentation makes it accessible to readers "
-            f"comfortable with that language, and the reading age guidance of "
-            f"{reading_age} helps determine suitability."
-        )
-        sections.append("")
-
-        # ISBN and book identification
-        sections.append("<h2>ISBN and Book Identification</h2>")
-        sections.append(
-            f"<strong>ISBN-10:</strong> {isbn_10_link}<br>"
-            f"<strong>ISBN-13:</strong> {isbn_13_link}<br>"
-        )
-        sections.append("")
-        sections.append(
-            f"These identifiers uniquely identify this edition of {product_title}, "
-            f"making it easy to order the correct version from booksellers, "
-            f"libraries, and online retailers."
-        )
-        sections.append("")
-        sections.append(
-            f"ISBN-10 {isbn_10} and ISBN-13 {isbn_13} are the standard numbers "
-            f"used across the book industry to distinguish one edition from another."
-        )
-        sections.append("")
-        sections.append(
-            f"When searching for {product_title}, use these ISBNs to ensure you "
-            f"receive exactly this edition published by {publisher}."
+            f"Each field is provided to make ordering and identification straightforward."
         )
         sections.append("")
 
         # What to expect
         sections.append("<h2>What to Expect</h2>")
         sections.append(
-            f"Readers of {product_title} can expect a complete presentation of "
-            f"the content in {language}."
+            f"Readers of {product_title} can expect a complete presentation of the content in {language}."
         )
         sections.append("")
         sections.append(
-            f"The {binding} format provides durability for repeated reading, and "
-            f"{pages} offers substantial content to explore."
+            f"The {binding} format provides durability for repeated reading. This edition is straightforward to locate and purchase."
         )
         sections.append("")
         sections.append(
-            f"With clear identification through its ISBN numbers, this edition "
-            f"is straightforward to locate and purchase."
+            f"With clear identification through its ISBN numbers, readers can be confident they are receiving the correct edition."
         )
         sections.append("")
         sections.append(
             f"The book is suited to readers with a reading age of {reading_age}."
-        )
-        sections.append("")
-        sections.append(
-            f"From the first page to the last, {product_title} delivers a "
-            f"consistent and well-produced reading experience backed by {publisher}."
         )
         sections.append("")
 
@@ -378,25 +337,19 @@ class WooCommerceProvider(CommerceProvider):
         )
         sections.append("")
         sections.append(
-            f"It features the full content in {language}, presented in a "
-            f"{binding} format with {pages}."
+            f"It features the full content in {language}, presented in a {binding} format with {pages}."
         )
         sections.append("")
         sections.append(
-            f"The book carries ISBN-10 {isbn_10} and ISBN-13 {isbn_13} for "
-            f"accurate identification."
+            f"The book carries ISBN-10 {isbn_10} and ISBN-13 {isbn_13} for accurate identification."
         )
         sections.append("")
         sections.append(
-            f"Whether you are buying for yourself, as a gift, or for a "
-            f"collection, this edition provides a complete and professionally "
-            f"presented reading experience."
+            f"Whether buying for yourself, as a gift, or for a collection, this edition provides a complete reading experience."
         )
         sections.append("")
         sections.append(
-            f"The author {authors} and publisher {publisher} have collaborated "
-            f"to bring this title to readers in a form that is ready for "
-            f"bookshelves and personal libraries alike."
+            f"The author {authors} and publisher {publisher} have collaborated to bring this title to readers in a form ready for bookshelves and personal libraries."
         )
         sections.append("")
 
@@ -418,12 +371,39 @@ class WooCommerceProvider(CommerceProvider):
         )
         sections.append("")
 
+        # Reader benefits
+        sections.append("<h2>Reader Benefits</h2>")
+        sections.append(
+            f"Readers of {product_title} gain access to well-organized content presented in {language}."
+        )
+        sections.append("")
+        sections.append(
+            f"The {binding} format supports easy handling and repeated reading over time."
+        )
+        sections.append("")
+        sections.append(
+            f"Having ISBN-10 {isbn_10} and ISBN-13 {isbn_13} makes it simple to verify the correct edition before purchase."
+        )
+        sections.append("")
+        sections.append(
+            f"This edition delivers everything a reader needs in one well-presented package."
+        )
+        sections.append("")
+
         # Internal links for SEO: link to other pages on the same store
         shop_url = f"{settings.woocommerce_url}/shop"
         sections.append("<h2>Browse Our Bookshop</h2>")
         sections.append(
             f"Discover more titles in our "
             f'<a href="{shop_url}" target="_blank" rel="noopener noreferrer">online bookshop</a>.'
+        )
+        sections.append("")
+        sections.append(
+            f"Visit our bookshop to explore additional books by {authors} and other authors published by {publisher}."
+        )
+        sections.append("")
+        sections.append(
+            f"Each visit helps you discover new editions and formats available in our collection."
         )
         sections.append("")
 
