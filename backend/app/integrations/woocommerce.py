@@ -176,18 +176,6 @@ class WooCommerceProvider(CommerceProvider):
 
         product_title = self._build_product_title(product)
 
-        # External links for SEO: link out to external resources
-        isbn_10_link = (
-            f'<a href="https://www.isbn-search.org/search?isbn={isbn_10}" target="_blank" rel="noopener noreferrer">{isbn_10}</a>'
-            if isbn_10 != "Not available"
-            else isbn_10
-        )
-        isbn_13_link = (
-            f'<a href="https://www.isbn-search.org/search?isbn={isbn_13}" target="_blank" rel="noopener noreferrer">{isbn_13}</a>'
-            if isbn_13 != "Not available"
-            else isbn_13
-        )
-
         sections: list[str] = []
 
         if book.cover_image_url:
@@ -298,8 +286,8 @@ class WooCommerceProvider(CommerceProvider):
             f"<strong>Publication date :</strong> {publication_date}<br>"
             f"<strong>Language :</strong> {language}<br>"
             f"<strong>{binding} :</strong> {pages}<br>"
-            f"<strong>ISBN-10 :</strong> {isbn_10_link}<br>"
-            f"<strong>ISBN-13 :</strong> {isbn_13_link}<br>"
+            f"<strong>ISBN-10 :</strong> {isbn_10}<br>"
+            f"<strong>ISBN-13 :</strong> {isbn_13}<br>"
         )
         sections.append("")
         sections.append(
