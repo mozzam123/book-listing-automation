@@ -168,7 +168,11 @@ class WooCommerceProvider(CommerceProvider):
         language = book.language or "English"
         publisher = book.publisher or "Publisher not specified"
         publication_date = book.publication_date or "Date not specified"
-        pages = f"{book.page_count} pages" if book.page_count else "page count not specified"
+        pages = (
+            f"{book.page_count} pages"
+            if book.page_count
+            else "page count not specified"
+        )
         reading_age = book.reading_age or "Not specified"
         isbn_10 = book.isbn_10 or "Not available"
         isbn_13 = book.isbn_13 or "Not available"
@@ -190,7 +194,7 @@ class WooCommerceProvider(CommerceProvider):
         sections.append(f"<h2>About {product_title}</h2>")
         if description:
             # Cap book description to first 3 sentences for SEO word count
-            sentences = re.split(r'(?<=[.!?])\s+', description.strip())
+            sentences = re.split(r"(?<=[.!?])\s+", description.strip())
             desc_chunk = " ".join(sentences[:3]).strip()
             if desc_chunk:
                 sections.append(desc_chunk)
@@ -350,10 +354,6 @@ class WooCommerceProvider(CommerceProvider):
         sections.append("")
         sections.append(
             f"Having ISBN-10 {isbn_10} and ISBN-13 {isbn_13} makes it simple to verify the correct edition before purchase."
-        )
-        sections.append("")
-        sections.append(
-            f"This edition delivers everything a reader needs in one well-presented package."
         )
         sections.append("")
 
