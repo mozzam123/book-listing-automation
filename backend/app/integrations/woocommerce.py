@@ -278,27 +278,6 @@ class WooCommerceProvider(CommerceProvider):
         )
         sections.append("")
 
-        # Book details (required format)
-        sections.append("<h2>Book Details</h2>")
-        sections.append(
-            f"<strong>Author :</strong> {authors}<br>"
-            f"<strong>Publisher :</strong> {publisher}<br>"
-            f"<strong>Publication date :</strong> {publication_date}<br>"
-            f"<strong>Language :</strong> {language}<br>"
-            f"<strong>{binding} :</strong> {pages}<br>"
-            f"<strong>ISBN-10 :</strong> {isbn_10}<br>"
-            f"<strong>ISBN-13 :</strong> {isbn_13}<br>"
-        )
-        sections.append("")
-        sections.append(
-            f"These details help readers confirm they are selecting the correct edition published by {publisher}."
-        )
-        sections.append("")
-        sections.append(
-            f"Each field is provided to make ordering and identification straightforward."
-        )
-        sections.append("")
-
         # What to expect
         sections.append("<h2>What to Expect</h2>")
         sections.append(
