@@ -143,8 +143,7 @@ class WooCommerceProvider(CommerceProvider):
         self,
         product: Product,
     ) -> str:
-        # Power word for SEO: titles with persuasive words get more clicks.
-        title = f"Amazing {product.book.title or 'Untitled Book'}"
+        title = product.book.title or "Untitled Book"
         authors = ", ".join(product.book.authors)
 
         if authors:
