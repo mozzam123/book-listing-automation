@@ -262,67 +262,6 @@ class WooCommerceProvider(CommerceProvider):
         )
         sections.append("")
 
-        # Publisher and publication details
-        sections.append("<h2>Publisher and Publication Details</h2>")
-        sections.append(
-            f"This book is published by {publisher}. It was released on {publication_date}."
-        )
-        sections.append("")
-        sections.append(
-            f"The publisher's involvement ensures professional presentation and editorial standards."
-        )
-        sections.append("")
-        sections.append(
-            f"The publication date marks when this edition became available, helping readers identify the specific version they are purchasing."
-        )
-        sections.append("")
-        sections.append(
-            f"The publisher brings this edition to market with care for quality and readability."
-        )
-        sections.append("")
-
-        # What to expect
-        sections.append("<h2>What to Expect</h2>")
-        sections.append(
-            f"Readers of {product_title} can expect a complete presentation of the content in {language}."
-        )
-        sections.append("")
-        sections.append(
-            f"The {binding} format provides durability for repeated reading. This edition is straightforward to locate and purchase."
-        )
-        sections.append("")
-        sections.append(
-            f"With clear identification through its ISBN numbers, readers can be confident they are receiving the correct edition."
-        )
-        sections.append("")
-        sections.append(
-            f"The book is suited to readers with a reading age of {reading_age}."
-        )
-        sections.append("")
-
-        # About this edition
-        sections.append("<h2>About This Edition</h2>")
-        sections.append(
-            f"This edition of {product_title} is brought to you by {publisher}."
-        )
-        sections.append("")
-        sections.append(
-            f"It features the full content in {language}, presented in a {binding} format with {pages}."
-        )
-        sections.append("")
-        sections.append(
-            f"The book carries ISBN-10 {isbn_10} and ISBN-13 {isbn_13} for accurate identification."
-        )
-        sections.append("")
-        sections.append(
-            f"Whether buying for yourself, as a gift, or for a collection, this edition provides a complete reading experience."
-        )
-        sections.append("")
-        sections.append(
-            f"The author {authors} and publisher {publisher} have collaborated to bring this title to readers in a form ready for bookshelves and personal libraries."
-        )
-        sections.append("")
-
         # Key features
         sections.append("<h2>Key Features</h2>")
         sections.append(
@@ -338,21 +277,6 @@ class WooCommerceProvider(CommerceProvider):
             f"<li>ISBN-10: {isbn_10}</li>"
             f"<li>ISBN-13: {isbn_13}</li>"
             f"</ul>"
-        )
-        sections.append("")
-
-        # Reader benefits
-        sections.append("<h2>Reader Benefits</h2>")
-        sections.append(
-            f"Readers of {product_title} gain access to well-organized content presented in {language}."
-        )
-        sections.append("")
-        sections.append(
-            f"The {binding} format supports easy handling and repeated reading over time."
-        )
-        sections.append("")
-        sections.append(
-            f"Having ISBN-10 {isbn_10} and ISBN-13 {isbn_13} makes it simple to verify the correct edition before purchase."
         )
         sections.append("")
 
